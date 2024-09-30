@@ -10,7 +10,7 @@ function App() {
     const host = process.env.HOME_IDP_BACKEND_HOST;
     const port = process.env.HOME_IDP_BACKEND_PORT;
     
-    const url = `${schema}://${host}:${port}/manifest?username=choigonyok`;s
+    const url = `${schema}://${host}:${port}/manifest?username=choigonyok`;
 
     const bodyData = {
       message: '@@@@@@@@@@@@@@@@This is the body content@@@@@@@@@@@@@@@@@@@@@@@@@@',
