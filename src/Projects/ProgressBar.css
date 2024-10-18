@@ -1,0 +1,25 @@
+.progress-bar-container {
+  width: 100%;
+  background-color: #f3f3f3;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 20px 0;
+}
+
+.progress-bar-success {
+  height: 30px;
+  background-color: #4caf50;
+  text-align: center;
+  line-height: 30px;
+  color: white;
+  transition: width 0.5s ease;
+}
+
+.progress-bar-fail {
+  height: 30px;
+  background-color: red;
+  text-align: center;
+  line-height: 30px;
+  color: white;
+  transition: width 0.5s ease;
+}
