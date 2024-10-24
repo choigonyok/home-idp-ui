@@ -63,12 +63,11 @@ function Configmap() {
               </td>
               <td className='keybox'>
                 {tableData.datas.map((item, index)=>(
-                      <input
-                        type="text"
-                        name="datas"
+                        <textarea
                         value={item.value}
-                        className='modern-input'
                         onChange={(e) => handleInputChange(e, "datas", index)}
+                        rows={2}  // 원하는 줄 수
+                        cols={50} // 원하는 너비
                         placeholder="Enter Host"
                       />
                 ))}

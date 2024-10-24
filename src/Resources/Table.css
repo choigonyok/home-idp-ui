@@ -4,42 +4,92 @@
   width: auto;
 }
 
-.keybox {
+.horizontal-bar {
+  width: 80%;
+  background-color: #007bff; /* Harbor 스타일 파란색 배경 */
+  padding: 15px;
+  border-radius: 8px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.key {
-  display: flex;
-  padding: 12px 20px;
-  border: 1px solid #ddd;
-  border-radius: 25px; /* 라운드 처리된 테두리 */
-  font-size: 16px;
-  outline: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+/* 버튼 스타일 */
+.btn {
+  background-color: white;
+  color: #4a90e2;
+  padding: 10px 20px;
+  border: 1px solid #007bff;
+  border-radius: 25px;
+  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.modern-input {
-  display: flex;
-  width: 400px;
-  padding: 12px 20px;
-  border: 1px solid #ddd;
-  border-radius: 25px; /* 라운드 처리된 테두리 */
-  font-size: 16px;
-  outline: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
-  transition: all 0.3s ease; /* 부드러운 애니메이션 효과 */
+/* 버튼 호버 시 */
+.btn:hover {
+  background-color: #357ABD; /* 배경색이 파란색으로 변화 */
+  color: white; /* 텍스트 색상이 흰색으로 변경 */
 }
 
-/* 인풋 박스 포커스 시 스타일 */
-.modern-input:focus {
-  border-color: #4a90e2; /* 포커스 시 테두리 색상 변경 */
-  box-shadow: 0 4px 8px rgba(74, 144, 226, 0.2); /* 포커스 시 그림자 강조 */
+/* 비활성화된 버튼 */
+.btn.disabled {
+  background-color: #d3d3d3;
+  color: #888;
+  border: none;
+  cursor: not-allowed;
 }
 
-/* 인풋 박스에 Placeholder 스타일 */
-.modern-input::placeholder {
-  color: #bbb;
-  font-style: italic;
+.dashboard-table {
+  width: 80%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 테이블 헤더 스타일 */
+.dashboard-table th {
+  background-color: #007bff;
+  color: white;
+  text-align: left;
+  padding: 12px 15px;
+  font-size: 14px;
+}
+
+/* 테이블 본문 셀 스타일 */
+.dashboard-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  font-size: 14px;
+}
+
+/* 테이블 짝수 행의 배경색 */
+.dashboard-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* 마우스 오버 시 행의 스타일 */
+.dashboard-table tr:hover {
+  background-color: #f1f5fc;
+}
+
+/* 마지막 행의 테두리 제거 */
+.dashboard-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* 테이블 내부 텍스트 조정 */
+.dashboard-table td.status {
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.dashboard-table td.status.failed {
+  color: #e74c3c;
 }

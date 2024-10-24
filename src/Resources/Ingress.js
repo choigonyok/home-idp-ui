@@ -8,7 +8,7 @@ function Ingress() {
     name: name,
     rules: rules,
   });
-
+  
   const handleInputChange = (e, field, index) => {
     var test = {...tableData}
     test.name = (field === "name" ? e.target.value : test.name)

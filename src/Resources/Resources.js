@@ -5,20 +5,22 @@ import PodTable from './PodTable.js';
 import IngressTable from './IngressTable.js';
 import ConfigmapTable from './ConfigmapTable.js';
 import SecretTable from './SecretTable.js';
+import Namespaces from './Namespaces.js';
 
-function Resources({name, tag}) {
+function Resources() {  
   const [pods, setPods] = useState([]);
   const [services, setServices] = useState([]);
   const [ingresses, setIngresses] = useState([]);
   const [secrets, setsecrets] = useState([]);
   const [configmaps, setconfigmaps] = useState([]);
+  const [namespace, setNamespace] = useState("");
 
   const [openPods, setOpenPods] = useState(false);
   const [openServices, setOpenServices] = useState(false);
   const [openIngresses, setOpenIngresses] = useState(false);
   const [openSecrets, setOpenSecrets] = useState(false);
   const [openConfigmaps, setOpenConfigmaps] = useState(false);
-  
+
   const schema = process.env.REACT_APP_BACKEND_SCHEMA;
   const host = process.env.REACT_APP_BACKEND_HOST;
   const port = process.env.REACT_APP_BACKEND_PORT;
@@ -61,37 +63,60 @@ function Resources({name, tag}) {
   }
 
   useEffect(() => {
-    const project_name = "idp-system"
     const fetchData = () => {
-    axios.get(url+'/api/projects/'+project_name+'/resources')
-      .then(response => {
-        setconfigmaps(response.data.configmap);
-        setsecrets(response.data.secret);
-        setIngresses(response.data.ingress);
-        setServices(response.data.service);
-        setPods(response.data.pod);
-      })
-      .catch(error => {
-        console.error('Error fetching progress:', error);
-      });
+      if (namespace === "") {
+        return () => clearInterval(interval);    
+      }
+      axios.get(url+'/api/projects/'+namespace+'/resources')
+        .then(response => {
+          setconfigmaps(response.data.configmap);
+          setsecrets(response.data.secret);
+          setIngresses(response.data.ingress);
+          setServices(response.data.service);
+          setPods(response.data.pod);
+        })
+        .catch(error => {
+          console.log(error);
+        });
     };
     const interval = setInterval(fetchData, 1000);
-
     return () => clearInterval(interval);
+  }, [namespace], 1000)
 
-  }, 1000)
-
+  const handleNamespace = (ns) => {
+    setNamespace(ns);
+  }
   
   return (
     <div>
-      Resources
-      <br/>
-      <button onClick={handleOpenPods}>Pods</button>
-      <button onClick={handleOpenServices}>Services</button>
-      <button onClick={handleOpenConfigmaps}>ConfigMaps</button>
-      <button onClick={handleOpenSecrets}>Secrets</button>
-      <button onClick={handleOpenIngresses}>Ingresses</button>
-
+      {openConfigmaps ?
+        <h1>ConfigMaps</h1>
+        :
+        openSecrets ?
+          <h1>Secrets</h1>
+          :
+          openPods ?
+            <h1>Pods</h1>
+            :
+            openServices ?
+              <h1>Services</h1>
+              :
+                openIngresses ?
+                <h1>Ingresses</h1>
+                :
+                <h1>Resources</h1>
+      }
+      
+      <Namespaces onSelectNamespace={handleNamespace}/>
+      
+      <div className='horizontal-bar'>
+        <button className='btn' onClick={handleOpenPods}>Pods</button>
+        <button className='btn' onClick={handleOpenServices}>Services</button>
+        <button className='btn' onClick={handleOpenConfigmaps}>ConfigMaps</button>
+        <button className='btn' onClick={handleOpenSecrets}>Secrets</button>
+        <button className='btn' onClick={handleOpenIngresses}>Ingresses</button>
+      </div>
+        
       {openPods?
         <div>
           {pods !== null?
