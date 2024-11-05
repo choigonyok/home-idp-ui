@@ -2,12 +2,30 @@ import React, { useState } from 'react';
 import ProgressBar from './ProgressBar';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import Input from './Input';
+import CustomTextarea from './CustomTextarea';
+import styled from "styled-components";
 
-function DockerfileInput() {
-  const [dockerfile, setDockerfile] = useState('');
+const CloseButton = styled.button`
+margin-top: 16px;
+padding: 8px 16px;
+background: #333;
+color: white;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+`;
+
+const ButtonRow = styled.div`
+display: flex;
+align-items: center;
+gap: 16px;
+`;
+
+
+function DockerfileInput({onClose}) {
   const [imageName, setImageName] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
-  const [statusBar, setStatusBar] = useState(false);
   const [imageVersion, setImageVersion] = useState('');
   const [repo, setRepo] = useState('');
   const [content, setContent] = useState('');
@@ -17,8 +35,8 @@ function DockerfileInput() {
   const port = process.env.REACT_APP_BACKEND_PORT;
   const url = `${schema}://${host}:${port}`
   
-  const handleDockerfileContentChange = (e) => {
-    setContent(e.target.value);
+  const handleDockerfileContentChange = (value) => {
+    setContent(value);
   };
   const handleDockerfileImageNameChange = (e) => {
     setImageName(e.target.value);
@@ -31,11 +49,15 @@ function DockerfileInput() {
     setRepo(e.target.value);
   };
 
-  const openStatusBar = () => {
-    setStatusBar(!statusBar);
+  const handleClosePopup = () => {
+    setRepo('')
+    setImageVersion('')
+    setImageName('')
+    setContent('')
+    onClose()
   };
   
-  const handleDockerfileSubmit = async (event) => {
+  const onSave = async (event) => {
     const id = uuidv4();
     event.preventDefault();
     const bodyData = {
@@ -63,67 +85,16 @@ function DockerfileInput() {
   };
 
   return (
-    <div style={{ margin: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', width: '400px' }}>
-      <h2>Dockerfile Input Form</h2>
-      <form onSubmit={handleDockerfileSubmit}>
-        <div>
-          <div>
-            <label htmlFor="title">이미지 이름</label>
-          </div>
-          <input
-            type="text"
-            id="imageName"
-            value={imageName}
-            onChange={handleDockerfileImageNameChange}
-            placeholder="이미지 이름 입력"
-          />
-        </div>
-        <br/>
-        <div>
-          <div>
-            <label htmlFor="subtitle">이미지 버전</label>
-          </div>
-          <input
-            type="text"
-            id="imageVersion"
-            value={imageVersion}
-            onChange={handleDockerfileImageVersionChange}
-            placeholder="이미지 태그 입력"
-          />
-        </div>
-        <br/>
-        <div>
-          <div>
-            <label htmlFor="subtitle">{
-              <div>
-                <div>소스코드 레포지토리</div>
-                {"ex) https://github.com/{username}/{reponame}/.git"}
-              </div>
-            }</label>
-          </div>
-          <input
-          type="text"
-          id="repository"
-          value={repo}
-          onChange={handleDockerfileRepoChange}
-          placeholder="repository 입력"
-        />
-        </div>
-        <br/>
-        <textarea
-          id="content"
-          name="content"
-          value={content}
-          onChange={handleDockerfileContentChange}
-          rows="10"
-          cols="50"
-          placeholder="Enter your Dockerfile here..."
-          style={{ width: '100%', padding: '10px', marginTop: '10px', fontFamily: 'monospace', fontSize: '14px' }}
-        />
-        <br />
-        <button type="submit" onClick={openStatusBar} style={{ marginTop: '10px', padding: '10px 20px' }}>Submit Dockerfile</button>
-      </form>
-
+    <div>
+      <Input onChange={handleDockerfileImageNameChange} placeholder={"nginx"} value={imageName} label={"Image"}/>
+      <Input onChange={handleDockerfileImageVersionChange} placeholder={"latest"} value={imageVersion} label={"Tag"}/>
+      <Input onChange={handleDockerfileRepoChange} placeholder={"https://github.com/choigonyok/home-idp.git"} value={repo} label={"Git Repo"}/>
+      <br/>
+      <CustomTextarea onTextChange={handleDockerfileContentChange} placeholder={`FROM golang:1.21\n\nCOPY . .\n\nRUN go mod download\n\ngo build ./main.go\n\nCMD ["./main"]`}/>
+      <ButtonRow>
+        <CloseButton onClick={onSave}>Save</CloseButton>
+        <CloseButton onClick={handleClosePopup}>Close</CloseButton>
+      </ButtonRow>        
       <div>
         RESPONSE: {responseMessage}
       </div>
