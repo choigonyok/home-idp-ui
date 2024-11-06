@@ -49,13 +49,13 @@ function ProjectList() {
         </tr>
       </thead>
       <tbody>
-      {namespaces.map((item, index) => (
+      {namespaces ? namespaces.map((item, index) => (
         <tr key={index}>
           <td>
             <Link to={"/projects/"+item.name}>{item.name}</Link>
           </td>
         </tr>
-      ))}
+      )): ""}
       </tbody>
     </table>
 

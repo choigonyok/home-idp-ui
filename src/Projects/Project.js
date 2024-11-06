@@ -47,11 +47,9 @@ function Project() {
 
   const [files, setFiles] = useState([]);
   const [envVars, setEnvVars] = useState([]);
+  const [envVar, setEnvVar] = useState({});
   const [dockerfile, setDockerfile] = useState([]);
 
-  console.log("ENV:", envVars)
-  console.log("FILE:", files)
-  console.log("DOCKERFILE:", dockerfile)
 
   useEffect(() => {
     if (dockerfiles.length !== 0) setDockerfileExist(true);
@@ -239,6 +237,29 @@ function Project() {
     setOpenDockerfilePopup(false)
   };
 
+  const handleEnvVarSave = async (event) => {
+    event.preventDefault(); 
+
+    const jsonBody = [{
+      key: envVar.key,
+      value: envVar.value,
+    }]
+    
+    try {
+      const response = await fetch(url+"/api/projects/"+namespace+"/secret", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonBody),
+      });
+    } catch (error) {
+      console.error('Error sending request:', error);
+    }
+
+    setOpenEnvVarPopup(false)
+  };
+
 
   const handleOpenDockerfilePopup = () => {
     setOpenDockerfilePopup(!openDockerfilePopup);
@@ -265,7 +286,6 @@ function Project() {
   
   return <div>
     <h1>{namespace}</h1>
-    
     <div>
       <h2>
         Users
@@ -296,24 +316,26 @@ function Project() {
       </h2>
       
       {openDockerfilePopup?
-        <Popup onSave={handleDockerfileSave} title={"Add Dockerfile"} children={<DockerfileInput onDockerfileChange={setDockerfile}/>} onClose={handleOpenDockerfilePopup}
-        title2={"Attach Environment Variables"} children2={<EnvSearch onEnvVarChange={setEnvVars} onNamespace={namespace} onClose={handleOpenEnvVarPopup} suggestions={
-          secret.map((item) => (
-            item.key
-          ))
-        }/>
-      }
-      title3={"Attach Files"} children3={<FileSearch onFileChange={setFiles} onNamespace={namespace} onClose={handleOpenEnvVarPopup} suggestions={
-        configmap.flatMap((cm) => (
-          cm.files.map((file) => file.name)
-        ))
-      }/>}
-      />
+        <Popup 
+          onSave={handleDockerfileSave} 
+          onClose={handleOpenDockerfilePopup}
+          title={"Add Dockerfile"} 
+          children={<DockerfileInput onDockerfileChange={setDockerfile}/>} 
+          title2={"Attach Environment Variables"} 
+          children2={<EnvSearch onEnvVarChange={setEnvVars} suggestions={secret}/>}
+          title3={"Attach Files"} 
+          children3={<FileSearch onFileChange={setFiles} suggestions={configmap}/>}
+        />
         :
         ""
       }
+
       {openEnvVarPopup?
-        <Popup title={"Add Environment Variable"} children={<EnvInput onNamespace={namespace} onClose={handleOpenEnvVarPopup}/>}/>
+        <Popup 
+          onSave={handleEnvVarSave}
+          onClose={handleOpenEnvVarPopup}
+          title={"Add Environment Variable"} 
+          children={<EnvInput onEnvVarChange={setEnvVar}/>}/>
         :
         ""
       }

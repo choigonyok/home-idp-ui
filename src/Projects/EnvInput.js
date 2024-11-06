@@ -4,6 +4,22 @@ import Input from './Input';
 import { Title } from 'chart.js';
 import styled from "styled-components";
 
+const CloseButton = styled.button`
+margin-top: 16px;
+padding: 8px 16px;
+background: #333;
+color: white;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+`;
+
+const ButtonRow = styled.div`
+display: flex;
+align-items: center;
+gap: 16px;
+`;
+
 const AttachmentButton = styled.div`
   width: fit-content;
   padding: 16px;
@@ -15,7 +31,7 @@ const AttachmentButton = styled.div`
   margin-top: 10px;
 `;
 
-function EnvInput({onNamespace, onSendData}) {
+function EnvInput({onEnvVarChange}) {
   const [key, setKey] = useState('');
   const [value, setValue] = useState('');
   const [kv, setKV] = useState([]);
@@ -24,31 +40,15 @@ function EnvInput({onNamespace, onSendData}) {
   const port = process.env.REACT_APP_BACKEND_PORT;
   const url = `${schema}://${host}:${port}`
 
-  const handleDockerfileKeyChange = (value) => {
-    setKey(value);
+  const handleDockerfileKeyChange = (e) => {
+    setKey(e.target.value)
+    onEnvVarChange({"key": e.target.value, "value": value})
   };
 
-  const handleDockerfileValueChange = (value) => {
-    setValue(value);
+  const handleDockerfileValueChange = (e) => {
+    setValue(e.target.value);
+    onEnvVarChange({"key": key, "value": e.target.value})
   };
-  
-  const handleEnvSubmit = (event) => {
-    event.preventDefault(); 
-
-    onSendData(kv)
-  };
-
-  console.log(kv)
-  
-  const addEnv = (k, v) => {
-    if (kv.findIndex((item) => item.key === k) !== -1 ) {
-      const tmp = [...kv]
-      tmp[kv.findIndex((item) => item.key === k)] = {"key": k, "value": v}
-      setKV(tmp)
-      return
-    }
-    setKV([...kv, {"key":k, "value":v}])
-  }
 
   return (
     <div>
@@ -59,11 +59,6 @@ function EnvInput({onNamespace, onSendData}) {
             {item.key}: {item.value}  
           </AttachmentButton>
         ))}
-        <div>
-          <button  onClick={()=>addEnv(key, value)} style={{ marginTop: '10px', padding: '10px 20px' }}>Apply</button>
-        </div>
-        <br />
-        <button onClick={handleEnvSubmit} style={{ marginTop: '10px', padding: '10px 20px' }}>Save</button>
     </div>
   );
 }
