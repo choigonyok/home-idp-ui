@@ -40,20 +40,20 @@ function EnvInput({onEnvVarChange}) {
   const port = process.env.REACT_APP_BACKEND_PORT;
   const url = `${schema}://${host}:${port}`
 
-  const handleDockerfileKeyChange = (e) => {
-    setKey(e.target.value)
-    onEnvVarChange({"key": e.target.value, "value": value})
+  const handleDockerfileKeyChange = (item) => {
+    setKey(item)
+    onEnvVarChange({"key": item, "value": value})
   };
 
-  const handleDockerfileValueChange = (e) => {
-    setValue(e.target.value);
-    onEnvVarChange({"key": key, "value": e.target.value})
+  const handleDockerfileValueChange = (item) => {
+    setValue(item);
+    onEnvVarChange({"key": key, "value": item})
   };
 
   return (
     <div>
-          <Input onChange={handleDockerfileKeyChange} placeholder={"환경변수 키 입력"} label={"Key"}/>
-          <Input onChange={handleDockerfileValueChange} placeholder={"환경변수 값 입력"} label={"Value"}/>
+          <Input onTextChange={handleDockerfileKeyChange} placeholder={"환경변수 키 입력"} label={"Key"}/>
+          <Input onTextChange={handleDockerfileValueChange} placeholder={"환경변수 값 입력"} label={"Value"}/>
         {kv.map((item)=>(
           <AttachmentButton>
             {item.key}: {item.value}  

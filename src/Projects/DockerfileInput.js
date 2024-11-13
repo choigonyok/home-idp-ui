@@ -36,15 +36,15 @@ function DockerfileInput({onDockerfileChange}) {
   const handleDockerfileContentChange = (value) => {
     setContent(value);
   };
-  const handleDockerfileImageNameChange = (e) => {
-    setImageName(e.target.value);
+  const handleDockerfileImageNameChange = (value) => {
+    setImageName(value);
   };
 
-  const handleDockerfileImageVersionChange = (e) => {
-    setImageVersion(e.target.value);
+  const handleDockerfileImageVersionChange = (value) => {
+    setImageVersion(value);
   };
-  const handleDockerfileRepoChange = (e) => {
-    setRepo(e.target.value);
+  const handleDockerfileRepoChange = (value) => {
+    setRepo(value);
   };
 
   useEffect(()=>{
@@ -59,9 +59,9 @@ function DockerfileInput({onDockerfileChange}) {
 
   return (
     <div>
-      <Input onChange={handleDockerfileImageNameChange} placeholder={"nginx"} value={imageName} label={"Image"}/>
-      <Input onChange={handleDockerfileImageVersionChange} placeholder={"latest"} value={imageVersion} label={"Tag"}/>
-      <Input onChange={handleDockerfileRepoChange} placeholder={"https://github.com/choigonyok/home-idp.git"} value={repo} label={"SourceCode Repository"}/>
+      <Input onTextChange={handleDockerfileImageNameChange} placeholder={"nginx"} value={imageName} label={"Image"}/>
+      <Input onTextChange={handleDockerfileImageVersionChange} placeholder={"latest"} value={imageVersion} label={"Tag"}/>
+      <Input onTextChange={handleDockerfileRepoChange} placeholder={"https://github.com/choigonyok/home-idp.git"} value={repo} label={"SourceCode Repository"}/>
       <br/>
       <CustomTextarea label={"Dockerfile"} onTextChange={handleDockerfileContentChange} placeholder={`FROM golang:1.21\n\nCOPY . .\n\nRUN go mod download\n\ngo build ./main.go\n\nCMD ["./main"]`}/>
     </div>

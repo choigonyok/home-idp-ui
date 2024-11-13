@@ -33,19 +33,35 @@ const Icon = styled.span`
 const StyledInput = styled.input`
   font-size: 16px;
   padding: 12px;
-  border: 1px solid #ccc;
   border-radius: 8px;
   outline: none;
 `;
 
-const Input = ({ label, type = "text", value, onChange, placeholder }) => {
+const StyledInputError = styled.input`
+  font-size: 16px;
+  padding: 12px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  border-color: red;
+`;
+
+const Input = ({ label, type = "text", value, onTextChange, placeholder, error, errorNoTitle }) => {
+  const handleTextChange = (e) => {
+    onTextChange(e.target.value);
+  };
+
   return (
     <Container>
       <StyledInputWrapper>
         <Label>
           <Icon>🔗</Icon> {label}
         </Label>
-        <StyledInput type={type} value={value} onChange={onChange} placeholder={placeholder}/>
+        {error ?
+          <StyledInputError type={type} value={value}  onChange={handleTextChange} placeholder={placeholder}/>
+          :
+          <StyledInput type={type} value={value} style={errorNoTitle ? {border: "2px solid red"}:{border: "2px solid #ccc"}} onChange={handleTextChange} placeholder={placeholder}/>
+        }
       </StyledInputWrapper>
     </Container>
   );

@@ -1,0 +1,13 @@
+.text-container {
+  width: 80vw;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+}
+

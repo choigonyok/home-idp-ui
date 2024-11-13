@@ -70,9 +70,6 @@ function Dockerfiles() {
     if (index1 === 0 && index2 === 1 ) {
       return "Push Dockerfile to Github"
     }
-    if (index1 === 1 && index2 === 0 ) {
-      return "Deploy Kaniko"
-    }
     if (index1 === 2 && index2 === 0 ) {
       return "Push Manifest to Github"
     }
@@ -87,9 +84,6 @@ function Dockerfiles() {
       return "PEDNING"
     }
     if (index1 === 0 && index2 === 1 ) {
-      return "PEDNING"
-    }
-    if (index1 === 1 && index2 === 0 ) {
       return "PEDNING"
     }
     if (index1 === 2 && index2 === 0 ) {

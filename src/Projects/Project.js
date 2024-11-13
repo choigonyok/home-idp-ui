@@ -12,10 +12,19 @@ import FileInput from './FileInput';
 import FileSearch from './FileSearch';
 import UserInput from './UserInput';
 import { v4 as uuidv4 } from 'uuid';
+import { useNavigate, useLocation } from 'react-router-dom';
+import UserTable from './Tables/UserTable';
+import EnvVarTable from './Tables/EnvVarTable';
+import FileTable from './Tables/FileTable';
+import Button from '../Components/Button';
+import Loading from '../Components/Loading';
 
 
 function Project() {
   const { namespace } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
 
   const [data, setData] = useState([]);
   const schema = process.env.REACT_APP_BACKEND_SCHEMA;
@@ -46,49 +55,39 @@ function Project() {
 
 
   const [files, setFiles] = useState([]);
+  const [file, setFile] = useState({});
   const [envVars, setEnvVars] = useState([]);
   const [envVar, setEnvVar] = useState({});
   const [dockerfile, setDockerfile] = useState([]);
-
-
+  const [user, setUser] = useState({});
+  const [trace, setTrace] = useState([]);
+  const [userData, setUserData] = useState([]);
+  const [fileData, setFileData] = useState([]);
+  
+  
+  useEffect(() => {
+    setUserData(users.map((item) => ({
+      name: item.name,
+      role: getValueByKey(item.role_id),
+    })))
+  },[role])
+  
   useEffect(() => {
     if (dockerfiles.length !== 0) setDockerfileExist(true);
   }, [dockerfiles])
 
 
-  const handleClickUser = (name) => {
-    setClickUser(name)
-    console.log("name:", name)
-  };
-
-  const handleClickRole = (role_id) => {
-    setClickRole(role_id)
-    console.log("roleid:", role_id)
-  };
-
-  const handleClickSecretKey = (key) => {
-    setClickSecretKey(key)
-    console.log("key:", key)
-  };
-
-  const handleClickSecretValue = (value) => {
-    setClickSecretValue(value)
-    console.log("value:", value)
-  };
-
-  const handleClickFilename = (name) => {
-    setClickFileName(name)
-    console.log("name:", name)
-  };
-
-  const handleClickFileTarget = (services) => {
-    setClickFileTarget(services)
-    console.log("services:", services)
-  };
-
   const handleClickDockerfileName = (name) => {
     setClickDockerfileName(name)
-    console.log("name:", name)
+
+    axios.get(url+'/api/projects/'+namespace+'/dockerfiles/'+name+'/trace')
+    .then(response => {
+      setTrace(response.data);
+    })
+    .catch(error => {
+      console.error('Error fetching progress:', error);
+    });
+    
   };
   
 
@@ -146,7 +145,12 @@ function Project() {
 
     axios.get(url+'/api/users/'+usr.name+'/dockerfiles')
       .then(response => {
-        setDockerfiles(response.data);
+        setDockerfiles(response.data.map((item) => ({
+          image_name: item.image_name,
+          image_version: item.image_version,
+          creator_id: getValueByKeyUser(item.creator_id),
+          repository: item.repository,
+        })))
       })
       .catch(error => {
         console.error('Error fetching progress:', error);
@@ -202,13 +206,24 @@ function Project() {
         })
       })
       setConfigmap(tmp)
+
+      setFileData(tmp.flatMap((item) => (
+        item.files.map((file) => ({
+          name: file.name,
+          target_service: fromArrayToString(file.mount_services),
+          configmap: item.name,
+          creator: item.creator,
+        }))
+      )))
     })
     .catch(error => {
       console.error('Error fetching progress:', error);
     });
   }, [])
 
+
   const handleDockerfileSave = async (event) => {
+    event.preventDefault(); 
     const id = uuidv4();
     event.preventDefault();
     const bodyData = {
@@ -221,20 +236,22 @@ function Project() {
       files: files,
     };
 
-    try {
-      const response = await fetch(url+"/api/dockerfile", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bodyData),
-      });
-      const data = await response.json();
-    } catch (error) {
-      console.error('Error sending request:', error);
+    const token = localStorage.getItem("jwt_token");
+    if (token === null) {
+      navigate("/login");
+      return
     }
-
-    setOpenDockerfilePopup(false)
+    axios.post(url+'/api/projects/'+location.pathname.split("/")[2]+'/dockerfile', JSON.stringify(bodyData), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(response => {
+        navigate('/traces/'+id);
+      })
+      .catch(error => {
+        console.error('Error fetching progress:', error);
+      });
   };
 
   const handleEnvVarSave = async (event) => {
@@ -257,9 +274,54 @@ function Project() {
       console.error('Error sending request:', error);
     }
 
-    setOpenEnvVarPopup(false)
+    window.location.reload();
   };
 
+  const handleFileSave = async (event) => {
+    event.preventDefault(); 
+
+    const jsonBody = {
+      filename: file.filename,
+      fileContent: file.fileContent,
+    }
+    
+    try {
+      const response = await fetch(url+"/api/projects/"+namespace+"/configmap", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonBody),
+      });
+    } catch (error) {
+      console.error('Error sending request:', error);
+    }
+
+    window.location.reload();
+  };
+
+  const handleUserSave = async (event) => {
+    event.preventDefault(); 
+
+    const jsonBody = {
+      name: user.username,
+      email: user.email,
+      role_id: user.role_id
+    }
+
+    try {
+      const response = await fetch(url+"/api/projects/"+namespace+"/user", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonBody),
+      });
+    } catch (error) {
+      console.error('Error sending request:', error);
+    }
+    window.location.reload();
+  };
 
   const handleOpenDockerfilePopup = () => {
     setOpenDockerfilePopup(!openDockerfilePopup);
@@ -283,158 +345,107 @@ function Project() {
     }
     return "-"
   };
-  
+
+  const userTable = [
+    { Header: 'Name', accessor: 'name' },
+    { Header: 'Role', accessor: 'role' },
+  ];
+  const envVarTable = [
+    { Header: 'Key', accessor: 'key' },
+    { Header: 'Value', accessor: 'value' },
+    { Header: 'Secret', accessor: 'secret' },
+    { Header: 'Creator', accessor: 'creator' },
+  ];
+  const fileTable = [
+    { Header: 'Name', accessor: 'name' },
+    { Header: 'Target Service', accessor: 'target_service' },
+    { Header: 'ConfigMap', accessor: 'configmap' },
+    { Header: 'Creator', accessor: 'creator' },
+  ];
+  const dockerfileTable = [
+    { Header: 'Name', accessor: 'image_name' },
+    { Header: 'Tag', accessor: 'image_version' },
+    { Header: 'Creator', accessor: 'creator_id' },
+    { Header: 'Repository', accessor: 'repository' },
+  ];
+
+  console.log(secret)
+
   return <div>
-    <h1>{namespace}</h1>
-    <div>
-      <h2>
-        Users
-        <button className='btn' onClick={handleOpenUserPopup}>Add User</button>
-      </h2>
-      <table border="1" cellPadding="10" cellSpacing="0" className='dashboard-table'>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((item, index) => (
-            <tr key={index}>
-              <td onClick={() =>handleClickUser(item.name)} >{item.name}</td>
-              <td onClick={() =>handleClickRole(item.role_id)}>{getValueByKey(item.role_id)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    {userData !== undefined && secret !== undefined && fileData !== undefined ?
+      <div>    
+        <div style={{fontSize: '45px', fontWeight: "700", marginLeft: '10px', marginTop: '20px', marginBottom: '30px'}}>{namespace}</div>
+        <div style={{display: "flex", gap: '10px', flexDirection: 'column'}}>
+          <div style={{display: "flex", alignItems: 'center'}}>
+            <h2>Users</h2>
+            <Button onClick={handleOpenUserPopup} label={"Add User"} disabled={false} />
+          </div>
+          <UserTable data={userData} columns={userTable}/>
 
-    <div>
-      <h2>
-        Dockerfiles
-        <button className='btn' onClick={handleOpenDockerfilePopup}>Add Dockerfile</button>
-      </h2>
-      
-      {openDockerfilePopup?
-        <Popup 
-          onSave={handleDockerfileSave} 
-          onClose={handleOpenDockerfilePopup}
-          title={"Add Dockerfile"} 
-          children={<DockerfileInput onDockerfileChange={setDockerfile}/>} 
-          title2={"Attach Environment Variables"} 
-          children2={<EnvSearch onEnvVarChange={setEnvVars} suggestions={secret}/>}
-          title3={"Attach Files"} 
-          children3={<FileSearch onFileChange={setFiles} suggestions={configmap}/>}
-        />
-        :
-        ""
-      }
+          <div style={{display: "flex", alignItems: 'center'}}>
+            <h2>Dockerfiles</h2>
+            <Button onClick={handleOpenDockerfilePopup} label={"Add Dockerfile"} disabled={false} />
+          </div>
+          <EnvVarTable data={dockerfiles} columns={dockerfileTable}/>
 
-      {openEnvVarPopup?
-        <Popup 
-          onSave={handleEnvVarSave}
-          onClose={handleOpenEnvVarPopup}
-          title={"Add Environment Variable"} 
-          children={<EnvInput onEnvVarChange={setEnvVar}/>}/>
-        :
-        ""
-      }
-      {openFilePopup?
-        <Popup title={"Add File"} children={<FileInput onNamespace={namespace} onClose={handleOpenFilePopup}/>}/>
-        :
-        ""
-      }
-      {openUserPopup?
-        <Popup title={"Add User"} children={<UserInput onNamespace={namespace} onClose={handleOpenUserPopup}/>}/>
-        :
-        ""
-      }
+          <div style={{display: "flex", alignItems: 'center'}}>
+            <h2>Environment Variables</h2>
+            <Button onClick={handleOpenEnvVarPopup} label={"Add Environment Variable"} disabled={false} />
+          </div>
+          <EnvVarTable data={secret} columns={envVarTable}/>
+          
+          <div style={{display: "flex", alignItems: 'center'}}>
+            <h2>Files</h2>
+            <Button onClick={handleOpenFilePopup} label={"Add File"} disabled={false} />
+          </div>
+          <FileTable data={fileData} columns={fileTable}/>
+        </div>
 
-      <table border="1" cellPadding="10" cellSpacing="0" className='dashboard-table'>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Version</th>
-            <th>Creator</th>
-            <th>Repository</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          {dockerfiles.map((item, index) => (
-            <tr key={index}>
-              <td onClick={() =>handleClickDockerfileName(item.id)}>{item.image_name}</td>
-              <td onClick={() =>handleClickDockerfileName(item.id)}>{item.image_version}</td>
-              <td>{getValueByKeyUser(item.creator_id)}</td>
-              <td>
-                <a href={item.repository}>
-                  {item.repository}
-                </a>
-              </td>
-            </tr>
-          ))}
-        
-        </tbody>
-      </table>
-    </div>
-
-    <div>
-      <h2>
-        Environment Variables
-        <button className='btn' onClick={handleOpenEnvVarPopup}>Add Environment Variable</button>
-      </h2>
-      <table border="1" cellPadding="10" cellSpacing="0" className='dashboard-table'>
-        <thead>
-          <tr>
-            <th>Key</th>
-            <th>Value</th>
-            <th>Secret</th>
-            <th>Creator</th>
-          </tr>
-        </thead>
-        <tbody>
-          {secret.map((item, index) => (
-            <tr key={index}>
-              <td onClick={() =>handleClickSecretKey(item.key)} >{item.key}</td>
-              <td onClick={() =>handleClickSecretValue(item.value)}>{item.value}</td>
-              <td>{item.secret}</td>
-              <td>{item.creator}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    <div>
-      <h2>
-        Files
-        <button className='btn' onClick={handleOpenFilePopup}>Add File</button>
-      </h2>
-      <table border="1" cellPadding="10" cellSpacing="0" className='dashboard-table'>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Target Service</th>
-            <th>ConfigMap</th>
-            <th>Creator</th>
-          </tr>
-        </thead>
-        <tbody>
-          {configmap.map((cm) => (
-              cm.files.map((file, index) => (
-              <tr key={index}>
-                  <td>{file.name}</td>
-                  <td>{fromArrayToString(file.mount_services)}</td>
-                  <td>{cm.name}</td>
-                  <td>{cm.creator}</td>
-                </tr>
-              ))
-          ))}
-        </tbody>
-      </table>
-    </div>  
-    <h2>Connectivity</h2>
-    <KialiStyleFlowChart onNamespace={namespace} className={openDockerfilePopup?"overlay":""}/>
+        {openDockerfilePopup?
+          <Popup 
+            onSave={handleDockerfileSave} 
+            onClose={handleOpenDockerfilePopup}
+            title={"Add Dockerfile"} 
+            children={<DockerfileInput onDockerfileChange={setDockerfile}/>} 
+            title2={"Attach Environment Variables"} 
+            children2={<EnvSearch onEnvVarChange={setEnvVars} suggestions={secret}/>}
+            title3={"Attach Files"} 
+            children3={<FileSearch onFileChange={setFiles} suggestions={configmap}/>}
+          />
+          :
+          ""
+        }
+        {openEnvVarPopup?
+          <Popup 
+            onSave={handleEnvVarSave}
+            onClose={handleOpenEnvVarPopup}
+            title={"Add Environment Variable"} 
+            children={<EnvInput onEnvVarChange={setEnvVar}/>}/>
+          :
+          ""
+        }
+        {openFilePopup?
+          <Popup 
+            onSave={handleFileSave}
+            onClose={handleOpenFilePopup}
+            title={"Add File"} 
+            children={<FileInput onFileChange={setFile} onClose={handleOpenFilePopup}/>}/>
+          :
+          ""
+        }
+        {openUserPopup?
+          <Popup 
+            onSave={handleUserSave}
+            onClose={handleOpenUserPopup}
+            title={"Add User"}  
+            children={<UserInput onUserChange={setUser} onClose={handleOpenUserPopup}/>}/>
+          :
+          ""
+        }
+        <h2>Connectivity</h2>
+        <KialiStyleFlowChart onNamespace={namespace} className={openDockerfilePopup?"overlay":""}/>
+        </div>
+        : <Loading/> }
   </div>;
 }
 

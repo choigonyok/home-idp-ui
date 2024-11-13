@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Input from './Input';
+import Select from './Select';
 import axios from 'axios';
 import styled from "styled-components";
+import { useNavigate } from 'react-router-dom';
+import Forbidden from '../Components/Forbidden';
 
 const CloseButton = styled.button`
 margin-top: 16px;
@@ -19,11 +22,13 @@ align-items: center;
 gap: 16px;
 `;
 
-function UserInput({onNamespace, onClose}) {
+function UserInput({onUserChange, userData}) {
+  const navigate = useNavigate();
   const [key, setKey] = useState('');
-  const [file, setFile] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [roles, setRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState('');
   
   const [fileContent, setFileContent] = useState('');
   const [filename, setFilename] = useState('');
@@ -31,61 +36,55 @@ function UserInput({onNamespace, onClose}) {
   const host = process.env.REACT_APP_BACKEND_HOST;
   const port = process.env.REACT_APP_BACKEND_PORT;
   const url = `${schema}://${host}:${port}`
+  const [forbidden, setForbidden] = useState("");
 
-
-  const handleClosePopup = () => {
-    setEmail('')
-    setUsername('')
-    onClose()
-  }
 
   useEffect(() => {
-    if (file === "") return;
-    setFilename(file.name)
-    const reader = new FileReader();
-      reader.onload = (e) => {
-        setFileContent(e.target.result);
-      };
-      reader.readAsText(file);
-  }, [file])
-
-  const onSave = async (event) => {
-    event.preventDefault(); 
-
-    const jsonBody = {
-      username: username,
-      email: email,
+    const token = localStorage.getItem("jwt_token");
+    if (token === null) {
+      navigate("/login");
+      return
     }
 
-    try {
-      const response = await fetch(url+"/api/projects/"+onNamespace+"/user", {
-        method: 'POST',
+    axios.get(url+'/api/roles', {
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(jsonBody),
+      })
+      .then(response => {
+        setRoles(response.data.map((item)=>(
+          {
+            name: item.role.name,
+            id: item.role.id,
+          }
+          
+        )))
+      })
+      .catch(error => {
+        if (error.response.status === 403) {
+          setForbidden(error.response.data)
+        } else if (error.response.status === 401) {
+          navigate("/login")
+        }
+        console.error('Error fetching progress:', error);
       });
-    } catch (error) {
-      console.error('Error sending request:', error);
-    }
+  }, [])
+
+  const handleUsernameChange = (value) => {
+    onUserChange({"user_id": userData.user_id,"username": value, "role_id": userData.role_id, "role": userData.role})
+  };
+  const handleRoleChange = (value) => {
+    onUserChange({"user_id": userData.user_id, "username": userData.username, "role_id": value, "role": userData.role})
   };
 
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
-  
-  };
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
-  
   return (
     <div>
-      <Input onChange={handleUsernameChange} placeholder={"choigonyok"} label="Username"/>
-      <Input onChange={handleEmailChange} value={email} placeholder={"example@naver.com"} label="Email"/>
-      <ButtonRow>
-        <CloseButton onClick={onSave}>Save</CloseButton>
-        <CloseButton onClick={handleClosePopup}>Close</CloseButton>
-      </ButtonRow>        
+    {forbidden === "" ?
+      <div>
+        <Input onTextChange={handleUsernameChange} value={userData.username} placeholder={"choigonyok"} label="Username"/>
+        <Select placeholder={"Select Role"} label="Role" value={userData.role_id} options={roles} onChange={handleRoleChange} /> 
+      </div>
+      : <Forbidden message={forbidden}/>}
     </div>
   );
 }

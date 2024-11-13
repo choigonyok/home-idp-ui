@@ -4,7 +4,7 @@ import Select from 'axios';
 
 function NewUserForm({project, handleClose}) {
   const [username, setUsername] = useState('');
-  const [selectedRole, setSelectedRole] = useState("");
+  const [selectedRoleId, setSelectedRoleId] = useState("");
   const [roles, setRoles] = useState([]);
   const schema = process.env.REACT_APP_BACKEND_SCHEMA;
   const host = process.env.REACT_APP_BACKEND_HOST;
@@ -13,12 +13,12 @@ function NewUserForm({project, handleClose}) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("role:"+selectedRole);
+    console.log("role:"+selectedRoleId);
     console.log("name:"+username);
 
     axios.post(url+'/api/projects/'+project+'/user', {
       name: username,
-      role_id: selectedRole
+      role_id: selectedRoleId
     })
     .then(response => {
       handleClose(false)
@@ -33,7 +33,7 @@ function NewUserForm({project, handleClose}) {
   };
 
   const handleRole = (e) => {
-    setSelectedRole(e.target.value);
+    setSelectedRoleId(e.target.value);
   }
 
   useEffect(() => {
@@ -66,11 +66,11 @@ function NewUserForm({project, handleClose}) {
         </div>
 
         <div>
-          <select class="harbor-select" value={selectedRole} onChange={handleRole}>
+          <select class="harbor-select" value={selectedRoleId} onChange={handleRole}>
           <option value="" disabled>Select Role</option>
           {roles.length !== 0 ? 
             roles.map((item) => (
-            <option value={item.name}>{item.name}</option>
+            <option value={item.id}>{item.name}</option>
             ))
             :
             "["
