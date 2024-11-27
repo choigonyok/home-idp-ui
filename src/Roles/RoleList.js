@@ -55,7 +55,6 @@ function RoleList() {
       
       setIsLoading(true)
 
-      -
       axios.post(url+'/api/role', JSON.stringify(role), {
         headers: {
           Authorization: `Bearer ${token}`,
