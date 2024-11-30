@@ -32,12 +32,6 @@ function Project() {
   const port = process.env.REACT_APP_BACKEND_PORT;
   const url = `${schema}://${host}:${port}`
   
-  const [clickUser, setClickUser] = useState("");
-  const [clickRole, setClickRole] = useState("");
-  const [clickSecretKey, setClickSecretKey] = useState("");
-  const [clickSecretValue, setClickSecretValue] = useState("");
-  const [clickFileTarget, setClickFileTarget] = useState([]);
-  const [clickFileName, setClickFileName] = useState("");
   const [clickDockerfileName, setClickDockerfileName] = useState("");
   const [openDockerfilePopup, setOpenDockerfilePopup] = useState(false);
   const [openEnvVarPopup, setOpenEnvVarPopup] = useState(false);
@@ -162,6 +156,12 @@ function Project() {
     if (namespace === "") {
       return;
     }
+    const token = localStorage.getItem("jwt_token");
+    if (token === null) {
+      navigate("/login");
+      return
+    }
+    
     axios.get(url+'/api/projects/'+namespace+'/users')
     .then(response => {
       setUsers(response.data);
@@ -169,8 +169,12 @@ function Project() {
     .catch(error => {
       console.error('Error fetching progress:', error);
     });
-
-    axios.get(url+'/api/projects/'+namespace+'/secrets')
+    
+    axios.get(url+'/api/projects/'+namespace+'/secrets', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
     .then(response => {
       setSecret(response.data);
     })
