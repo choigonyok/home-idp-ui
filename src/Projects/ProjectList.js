@@ -77,8 +77,9 @@ function ProjectList() {
       .catch(error => {
         console.log(error)
         if (error.response.status === 403) {
-          setForbidden(error.response.data)
+          setForbidden("You don't have proper permission to access.\nPlease contact with your administrator.")
         } else if (error.response.status === 401) {
+          alert("You are not logged in!")
           navigate("/login")
         }
         console.error('Error fetching progress:', error);

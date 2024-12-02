@@ -136,21 +136,26 @@ function PolicyList() {
         json: policy.json,
       };
 
-      try {
-        const response = await fetch(url+"/api/policy", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify(policyData),
+      axios.post(url+'/api/policy', JSON.stringify(policyData), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(response => {
+          window.location.reload();
+        })
+        .catch(error => {
+          if (error.response.status === 403) {
+            setForbidden("You don't have proper permission to access.\nPlease contact with your administrator.")
+            setIsLoading(false)
+          } else if (error.response.status === 401) {
+            alert("You are not logged in!")
+            navigate("/login")
+          }
+          console.error('Error fetching progress:', error);
+          setIsLoading(false)
         });
-      } catch (error) {
-        console.error('Error sending request:', error);
-        setIsLoading(false)
-      }
 
-      window.location.reload();
       handleAddPolicyPopup(false)
     };
 
