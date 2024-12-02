@@ -124,6 +124,12 @@ function PolicyList() {
         return
       }
 
+      const token = localStorage.getItem("jwt_token");
+      if (token === null) {
+        navigate("/login");
+        return
+      }
+
       setIsLoading(true)
       const policyData = {
         name: policy.name,
@@ -135,6 +141,7 @@ function PolicyList() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify(policyData),
         });
